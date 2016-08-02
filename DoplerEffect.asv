@@ -1,0 +1,55 @@
+%%
+filefolder='\\Elder-pc\j\Elder Backup Raw Images\2016\2016-07\2016-07-29\';
+filelist={'07-29-2016_15_52_34_TopA';'07-29-2016_15_52_34_TopB';'07-29-2016_15_51_42_TopA';'07-29-2016_15_51_42_TopB';'07-29-2016_15_50_22_TopA';'07-29-2016_15_50_22_TopB';'07-29-2016_15_49_30_TopA';'07-29-2016_15_49_30_TopB';'07-29-2016_15_48_38_TopA';'07-29-2016_15_48_38_TopB';'07-29-2016_15_47_46_TopA';'07-29-2016_15_47_46_TopB';'07-29-2016_15_46_54_TopA';'07-29-2016_15_46_54_TopB';'07-29-2016_15_46_02_TopA';'07-29-2016_15_46_02_TopB'};
+frequencylist=[143.400000000000;143.400000000000;144.900000000000;144.900000000000;145.400000000000;145.400000000000;143.900000000000;143.900000000000;146.400000000000;146.400000000000;141.900000000000;141.900000000000;142.400000000000;142.400000000000;142.900000000000;142.900000000000];
+frequencylist=frequencylist(2:2:length(filelist));
+fileAlist=filelist(1:2:length(filelist)-1);
+fileBlist=filelist(2:2:length(filelist));
+frequency0=146.4;
+%%
+ROI=[360,440,650,1050];
+imgAlist={};
+imgBlist={};
+
+for i=1:length(fileAlist)
+    imgA=fitsread([filefolder,fileAlist{i},'.fits']);
+    imgA=imgA(ROI(2):ROI(4),ROI(1):ROI(3),:);
+    imgAlist=[imgAlist;imgA];
+    
+    imgB=fitsread([filefolder,fileBlist{i},'.fits']);
+    imgB=imgB(ROI(2):ROI(4),ROI(1):ROI(3),:);
+    imgBlist=[imgBlist;imgB];
+end
+
+%%
+Z=ROI(2):ROI(4);
+Z=Z';
+Zth1=500;Zth2=950;
+NumA=[];
+NumB=[];
+Nsat=inf;
+
+for i=1:length(imgAlist)
+    
+    NmapA=AtomNumber(imgAlist{i},(0.7*10^-6)^2,0.215*10^-12/2, Nsat );
+    NmapA=CleanImage(NmapA );
+    nzA=sum(NmapA,2);
+    nzA=TailTailor(nzA,Z,Zth1,Zth2);
+    NumA=[NumA;sum(nzA)];
+
+
+    NmapB=AtomNumber(imgBlist{i},(0.7*10^-6)^2,0.215*10^-12/2, Nsat );
+    NmapB=CleanImage(NmapB );
+    nzB=sum(NmapB,2);
+    nzB=TailTailor(nzB,Z,Zth1,Zth2);
+    NumB=[NumB;sum(nzB)];
+
+end
+
+%%
+detuning=(frequencylist-frequency0)*2;
+RelDiff=NumA-NumB./
+
+scatter(detuning,NumB);
+
+
